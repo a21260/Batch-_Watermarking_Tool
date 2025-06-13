@@ -7,7 +7,18 @@
   <link rel="stylesheet" href="styles.css" />
 </head>
 <body>
-  <h2>實績照批次上浮水印工具</h2>
+  <div id="login-screen">
+    <!-- 密碼頁面 -->
+    <h2>實績照批次上浮水印工具</h2>
+    <h3>請輸入密碼</h3>
+    <input type="password" id="password" />
+    <button onclick="checkPassword()">確認</button>
+    <p id="error" style="color: red;"></p>
+  </div>
+
+  <div id="app" style="display:none;">
+    <!-- 操作頁面 -->
+     <h2>實績照批次上浮水印工具</h2>
   <ol>
     <li>上傳一張或多張檔案</li>
     <li>切換黑色或白色</li>
@@ -21,5 +32,6 @@
   <div class="preview" id="preview"></div>
   <script src="https://cdnjs.cloudflare.com/ajax/libs/jszip/3.10.0/jszip.min.js"></script>
   <script src="script.js"></script>
+  </div>
 </body>
 </html>
