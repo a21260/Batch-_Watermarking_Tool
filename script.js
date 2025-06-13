@@ -12,9 +12,16 @@ let imagesData = [];
 const watermarkPositions = {}; // 記錄每張圖片的浮水印座標
 
 function extractPartNumbers(filename) {
-  const name = filename.replace(/\.[^/.]+$/, '');
-  const matches = name.match(/[A-Z]\d{3,}[A-Z]?/g);
-  return matches ? `# ${matches.join('、')}` : '# UNKNOWN';
+  // 1. 去掉副檔名 (.jpg、.png 等)
+  let name = filename.replace(/\.[^/.]+$/, '');
+
+  // 2. 去掉最後面的 (數字) 和其前後空白
+  name = name.replace(/\s*\(\d+\)\s*$/, '');
+
+  // 3. 去掉尾端空白
+  name = name.trim();
+
+  return `# ${name}`;
 }
 
 function createCanvasWithDrag(img, watermarkImg, fileName, style, initialPos) {
