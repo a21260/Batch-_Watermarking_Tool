@@ -1,3 +1,17 @@
+const PASSWORD = "6655";
+    function checkPassword() {
+      const input = document.getElementById("password").value;
+      if (input === PASSWORD) {
+        document.getElementById("login-screen").style.display = "none";
+        document.getElementById("app").style.display = "block";
+      } else {
+        document.getElementById("error").textContent = "密碼錯誤";
+      }
+    }
+document.getElementById("password").addEventListener("keydown", function (e) {
+  if (e.key === "Enter") checkPassword();
+});
+
 const targetSize = {
   landscape: [1840, 1160],
   portrait: [1160, 1840]
