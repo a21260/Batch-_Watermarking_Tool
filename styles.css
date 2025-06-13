@@ -117,3 +117,13 @@ canvas {
   text-align: center;
 }
 
+#login-screen input[type="password"] {
+  padding: 10px;
+  font-size: 14px;
+  border: 1px solid #ccc;
+  border-radius: 6px;
+  height: 40px;
+  box-sizing: border-box;
+  outline: none;
+}
+
