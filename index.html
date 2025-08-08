@@ -7,31 +7,94 @@
   <link rel="stylesheet" href="styles.css" />
 </head>
 <body>
+  <!-- 密碼頁面 -->
   <div id="login-screen">
-    <!-- 密碼頁面 -->
     <h2>實績照批次上浮水印工具</h2>
     <h3>請輸入密碼</h3>
     <input type="password" id="password" />
     <button onclick="checkPassword()">確認</button>
     <p id="error" style="color: red;"></p>
   </div>
-
   <div id="app" style="display:none;">
-    <!-- 操作頁面 -->
      <h2>實績照批次上浮水印工具</h2>
   <ol>
-    <li>上傳一張或多張檔案</li>
+    <li>上傳一張或多張實績照</li>
+    <li>可選擇上傳得獎浮水印</li>
     <li>切換黑色或白色</li>
     <li>用滑鼠拖曳LOGO，調整位置</li>
-    <li>下載全部圖片的zip檔</li>
+    <li>下載上完浮水印的zip檔</li>
   </ol>
   <div class="controls">
-    <input type="file" id="imageInput" multiple accept="image/*" />
-    <button id="downloadAll">下載全部圖片</button>
+    <label class="chooseBtn">上傳實績照
+      <input type="file" id="imageInput" multiple accept="image/*" />
+    </label>
+    <button id="awardUploadBtn" class="chooseBtn">上傳得獎浮水印</button>
+    <button id="downloadAll">下載zip檔</button>
+  </div>
+
+  <div class="controls">
+    
+    <div class="toggle-switch" id="awardToggleContainer" style="display:none;">
+      <span>套用得獎浮水印</span>
+      <label class="switch">
+        <input type="checkbox" id="awardToggle" checked />
+        <span class="slider round"></span>
+      </label>
+    </div>
+    
+    <div class="toggle-switch" id="logoToggleContainer" style="display:none;">
+      <span>顯示 LOGO</span>
+      <label class="switch">
+        <input type="checkbox" id="logoToggle" checked />
+        <span class="slider round"></span>
+      </label>
+    </div>
+
+    <div class="toggle-switch" id="partnoToggleContainer" style="display:none;">
+      <span>顯示左下角品號</span>
+      <label class="switch">
+        <input type="checkbox" id="partnoToggle" checked />
+        <span class="slider round"></span>
+      </label>
+    </div>
+
   </div>
   <div class="preview" id="preview"></div>
-  <script src="https://cdnjs.cloudflare.com/ajax/libs/jszip/3.10.0/jszip.min.js"></script>
-  <script src="script.js"></script>
   </div>
+
+  <!-- 得獎浮水印彈窗 -->
+  <div id="awardModal" class="modal">
+    <div class="modal-content">
+      <awardUploadBtn>上傳得獎浮水印</h3>
+      <div class="award-slots">
+        <label class="chooseBtn slot" data-type="landscape" data-color="dark">
+          橫式・深色（1840×1160 px）
+          <input type="file" accept="image/*" />
+          <div class="slot-preview"></div>
+        </label>
+        <label class="chooseBtn slot" data-type="landscape" data-color="light">
+          橫式・淺色（1840×1160 px）
+          <input type="file" accept="image/*" />
+          <div class="slot-preview"></div>
+        </label>
+        <label class="chooseBtn slot" data-type="portrait" data-color="dark">
+          直式・深色（1160×1840 px）
+          <input type="file" accept="image/*" />
+          <div class="slot-preview"></div>
+        </label>
+        <label class="chooseBtn slot" data-type="portrait" data-color="light">
+          直式・淺色（1160×1840 px）
+          <input type="file" accept="image/*" />
+          <div class="slot-preview"></div>
+        </label>
+      </div>
+      <div class="modal-buttons">
+        <button id="awardCancel">取消</button>
+        <button id="awardApply" disabled>套用</button>
+      </div>
+    </div>
+  </div>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/jszip/3.10.0/jszip.min.js" defer></script>
+  <script src="script.js" defer></script>
 </body>
 </html>
