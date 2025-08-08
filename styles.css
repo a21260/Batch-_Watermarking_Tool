@@ -30,8 +30,19 @@ h2 {
   align-items: center;
 }
 
+.icon{
+  height: 16px;
+  margin-right: 5px;
+}
+
 input[type="file"] {
   display: none;
+}
+
+.chooseBtn, #downloadAl{
+  display: flex;
+  align-items: center;
+  justify-content: center;
 }
 
 .chooseBtn{
@@ -46,6 +57,10 @@ input[type="file"] {
   transition: background-color 0.2s;
   z-index: 2;
   position: relative;
+}
+
+#downloadAll .icon{
+  filter: invert(100%);
 }
 
 .chooseBtn:hover {

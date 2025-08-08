@@ -16,26 +16,38 @@
     <p id="error" style="color: red;"></p>
   </div>
   <div id="app" style="display:none;">
-     <h2>實績照批次上浮水印工具</h2>
-  <ol>
-    <li>上傳一張或多張實績照</li>
-    <li>可選擇上傳得獎浮水印</li>
-    <li>切換黑色或白色</li>
-    <li>用滑鼠拖曳LOGO，調整位置</li>
-    <li>下載上完浮水印的zip檔</li>
-  </ol>
+    <h2>實績照批次上浮水印工具</h2>
+    <ol>
+      <li>可切換黑色或白色喔！</li>
+      <li>LOGO可以用滑鼠拖曳調整喜歡的位置喔！</li>
+    </ol>
+    <!-- <ol>
+      <li>上傳一張或多張實績照</li>
+      <li>可選擇上傳得獎浮水印</li>
+      <li>可切換黑色或白色</li>
+      <li>用滑鼠拖曳LOGO，調整位置</li>
+      <li>下載上完浮水印的zip檔</li>
+    </ol> -->
   <div class="controls">
-    <label class="chooseBtn">上傳實績照
+    <label class="chooseBtn">
+      <img class="icon" src="./upload.png"/>
+      上傳實績照
       <input type="file" id="imageInput" multiple accept="image/*" />
     </label>
-    <button id="awardUploadBtn" class="chooseBtn">上傳得獎浮水印</button>
-    <button id="downloadAll">下載zip檔</button>
+    <button id="awardUploadBtn" class="chooseBtn">
+      <img class="icon" src="./upload.png"/>
+      上傳得獎浮水印（非必要）
+    </button>
+    <button id="downloadAll">
+      <img class="icon" src="./download.png"/>
+      下載
+    </button>
   </div>
 
   <div class="controls">
     
     <div class="toggle-switch" id="awardToggleContainer" style="display:none;">
-      <span>套用得獎浮水印</span>
+      <span>得獎浮水印</span>
       <label class="switch">
         <input type="checkbox" id="awardToggle" checked />
         <span class="slider round"></span>
@@ -43,7 +55,7 @@
     </div>
     
     <div class="toggle-switch" id="logoToggleContainer" style="display:none;">
-      <span>顯示 LOGO</span>
+      <span>LOGO</span>
       <label class="switch">
         <input type="checkbox" id="logoToggle" checked />
         <span class="slider round"></span>
@@ -51,7 +63,7 @@
     </div>
 
     <div class="toggle-switch" id="partnoToggleContainer" style="display:none;">
-      <span>顯示左下角品號</span>
+      <span>品號</span>
       <label class="switch">
         <input type="checkbox" id="partnoToggle" checked />
         <span class="slider round"></span>
@@ -68,21 +80,25 @@
       <awardUploadBtn>上傳得獎浮水印</h3>
       <div class="award-slots">
         <label class="chooseBtn slot" data-type="landscape" data-color="dark">
+          <img class="icon" src="./upload.png"/>
           橫式・深色（1840×1160 px）
           <input type="file" accept="image/*" />
           <div class="slot-preview"></div>
         </label>
         <label class="chooseBtn slot" data-type="landscape" data-color="light">
+          <img class="icon" src="./upload.png"/>
           橫式・淺色（1840×1160 px）
           <input type="file" accept="image/*" />
           <div class="slot-preview"></div>
         </label>
         <label class="chooseBtn slot" data-type="portrait" data-color="dark">
+          <img class="icon" src="./upload.png"/>
           直式・深色（1160×1840 px）
           <input type="file" accept="image/*" />
           <div class="slot-preview"></div>
         </label>
         <label class="chooseBtn slot" data-type="portrait" data-color="light">
+          <img class="icon" src="./upload.png"/>
           直式・淺色（1160×1840 px）
           <input type="file" accept="image/*" />
           <div class="slot-preview"></div>
