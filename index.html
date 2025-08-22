@@ -15,19 +15,13 @@
     <button onclick="checkPassword()">確認</button>
     <p id="error" style="color: red;"></p>
   </div>
+  <!-- 主頁面 -->
   <div id="app" style="display:none;">
     <h2>實績照批次上浮水印工具</h2>
     <ol>
       <li>可切換黑色或白色喔！</li>
       <li>LOGO可以用滑鼠拖曳調整喜歡的位置喔！</li>
     </ol>
-    <!-- <ol>
-      <li>上傳一張或多張實績照</li>
-      <li>可選擇上傳得獎浮水印</li>
-      <li>可切換黑色或白色</li>
-      <li>用滑鼠拖曳LOGO，調整位置</li>
-      <li>下載上完浮水印的zip檔</li>
-    </ol> -->
   <div class="controls">
     <label class="chooseBtn">
       <img class="icon" src="./upload.png"/>
@@ -36,7 +30,11 @@
     </label>
     <button id="awardUploadBtn" class="chooseBtn">
       <img class="icon" src="./upload.png"/>
-      上傳得獎浮水印（非必要）
+      上傳得獎浮水印（可選）
+    </button>
+    <button id="clearAllBtn" class="chooseBtn">
+      <img class="icon" src="./trash can.png"/>
+      清空
     </button>
     <button id="downloadAll">
       <img class="icon" src="./download.png"/>

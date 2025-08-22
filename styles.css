@@ -266,3 +266,24 @@ input:checked + .slider:before {
   background-color: #ccc;
   cursor: not-allowed;
 }
+
+/* 新增 */
+.canvas-container {
+  position: relative;
+}
+
+/* 右上角垃圾桶 */
+.canvas-container .delete-btn {
+  position: absolute;
+  top: 6px;
+  right: 6px;
+  background: none;
+  opacity: 0.3;
+  cursor: pointer;
+  display: grid;
+  place-items: center;
+}
+.canvas-container .delete-btn .icon{
+  margin: 0;
+}
+.canvas-container .delete-btn:hover { opacity: 1; }
