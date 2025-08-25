@@ -597,5 +597,23 @@ document.getElementById('downloadAll').addEventListener('click', async () => {
   a.click();
 });
 
+// ================================
+// Go Top 按鈕功能
+// ================================
+const goTopBtn = document.getElementById("goTopBtn");
 
+window.addEventListener("scroll", () => {
+  // 超過 200px 高度才顯示
+  if (document.documentElement.scrollTop > 200 || document.body.scrollTop > 200) {
+    goTopBtn.style.display = "block";
+  } else {
+    goTopBtn.style.display = "none";
+  }
+});
 
+goTopBtn.addEventListener("click", () => {
+  window.scrollTo({
+    top: 0,
+    behavior: "smooth" // 平滑滾動
+  });
+});

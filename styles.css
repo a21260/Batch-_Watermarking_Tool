@@ -287,3 +287,22 @@ input:checked + .slider:before {
   margin: 0;
 }
 .canvas-container .delete-btn:hover { opacity: 1; }
+
+/* 客製 Go Top 按鈕，主要跟著chooseBtn */
+.go-top {
+  position: fixed;
+  bottom: 30px;
+  right: 30px;
+  width: 50px;
+  height: 50px;
+  border-radius: 50px;
+  display: none; /* 預設隱藏，滾動後才顯示 */
+  z-index: 999;
+  padding: 0;
+}
+
+.go-top img {
+  width: 60%;
+  object-fit: contain;
+  pointer-events: none; /* 點擊不會卡在圖片本身 */
+}
