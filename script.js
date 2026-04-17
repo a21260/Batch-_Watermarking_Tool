@@ -18,23 +18,32 @@ document.getElementById("password").addEventListener("keydown", function (e) {
 });
 
 // --- 彈窗相關元素 ---
-const awardModal = document.getElementById('awardModal');                // 得獎浮水印彈窗
-const awardUploadBtn = document.getElementById('awardUploadBtn');        // 開啟彈窗按鈕
-const awardCancelBtn = document.getElementById('awardCancel');           // 彈窗內「取消」按鈕
-const awardApplyBtn = document.getElementById('awardApply');             // 彈窗內「套用」按鈕
-const awardToggleContainer = document.getElementById('awardToggleContainer'); // 主畫面切換容器
-const awardToggle = document.getElementById('awardToggle');              // 主畫面切換開關
-const awardModalEl = document.getElementById('awardModal');              // 彈窗容器本身
+const awardModal = document.getElementById('awardModal');
+const awardUploadBtn = document.getElementById('awardUploadBtn');
+const awardCancelBtn = document.getElementById('awardCancel');
+const awardApplyBtn = document.getElementById('awardApply');
+const awardToggleContainer = document.getElementById('awardToggleContainer');
+const awardToggle = document.getElementById('awardToggle');
+const awardModalEl = document.getElementById('awardModal');
 
 // --- 其他 UI 元素 ---
-const imageInput = document.getElementById('imageInput');                // 上傳實績照 input
-const previewContainer = document.getElementById('preview');             // 預覽容器
-const clearAllBtn = document.getElementById('clearAllBtn');              // 清空按鈕
+const imageInput = document.getElementById('imageInput');
+const previewContainer = document.getElementById('preview');
+const clearAllBtn = document.getElementById('clearAllBtn');
+const imageUploadBtn = document.getElementById('imageUploadBtn');
+
 
 const logoToggleContainer = document.getElementById('logoToggleContainer');
 const logoToggle = document.getElementById('logoToggle');
 const partnoToggleContainer = document.getElementById('partnoToggleContainer');
 const partnoToggle = document.getElementById('partnoToggle');
+
+// --- 下載按鈕（新版：兩顆） ---
+const downloadCompressedBtn = document.getElementById('downloadCompressed');
+const downloadHighQualityBtn = document.getElementById('downloadHighQuality');
+
+// --- Go Top ---
+const goTopBtn = document.getElementById('goTopBtn');
 
 // ================================
 //  全域變數與設定
@@ -59,9 +68,9 @@ let imagesData = [];
 const watermarkPositions = {};
 
 // 品號（左下角）內容：由檔名產生
-function extractPartNumbers(filename) {  
-  let name = filename.replace(/\.[^/.]+$/, '');  // 去副檔名
-  name = name.replace(/\s*\(\d+\)\s*$/, '');     // 去掉可能的 (2)、(3)
+function extractPartNumbers(filename) {
+  let name = filename.replace(/\.[^/.]+$/, '');
+  name = name.replace(/\s*\(\d+\)\s*$/, '');
   name = name.trim();
   return `# ${name}`;
 }
@@ -69,16 +78,16 @@ function extractPartNumbers(filename) {
 // 得獎浮水印（四種組合）的 Image 物件
 let awardOverlays = {
   landscape: { dark: null, light: null },
-  portrait:  { dark: null,  light: null }
+  portrait: { dark: null, light: null }
 };
 
-// 是否顯示主畫面的得獎浮水印切換（你改名後的 flag）
+// 是否顯示主畫面的得獎浮水印切換
 let showApplyWard = false;
 
 // 三個功能開關的邏輯狀態（與 UI 同步）
-let applyAward = false;   // 得獎浮水印是否套用
-let showLogo = true;      // 是否顯示 LOGO
-let showPartNo = true;    // 是否顯示品號
+let applyAward = false;
+let showLogo = true;
+let showPartNo = true;
 
 // 開關預設狀態（UI）
 awardToggle.checked = false;
@@ -86,7 +95,11 @@ logoToggle.checked = true;
 partnoToggle.checked = true;
 
 // 實績照快取（允許同名共存 → 使用唯一 id）
-window.filesCache = {};   // { [fileId]: File }
+window.filesCache = {};
+
+// 1MB 壓縮品質序列
+const QUALITY_LEVELS_1M = [1, 0.98, 0.95, 0.92, 0.9, 0.85, 0.8];
+const MAX_FILE_SIZE = 1024 * 1024; // 1MB
 
 // ================================
 //  工具函式（檢查、狀態、繪製共用）
@@ -95,16 +108,16 @@ window.filesCache = {};   // { [fileId]: File }
 /** 驗證圖片長寬比（允許 ±1.5% 誤差） */
 function validateAspect(width, height, type) {
   const ratio = width / height;
-  const targetRatio = type === 'landscape' ? (1840/1160) : (1160/1840);
+  const targetRatio = type === 'landscape' ? (1840 / 1160) : (1160 / 1840);
   return Math.abs(ratio - targetRatio) / targetRatio <= 0.015;
 }
 
 /** 四個得獎浮水印槽位是否都已填滿 */
 function checkAllSlotsFilled() {
   return (
-    awardOverlays.landscape.dark  &&
+    awardOverlays.landscape.dark &&
     awardOverlays.landscape.light &&
-    awardOverlays.portrait.dark   &&
+    awardOverlays.portrait.dark &&
     awardOverlays.portrait.light
   );
 }
@@ -117,6 +130,18 @@ function hasAnyPhotos() {
 /** 更新「套用」按鈕的可用狀態（在彈窗內） */
 function updateApplyButtonState() {
   awardApplyBtn.disabled = !checkAllSlotsFilled();
+}
+
+/** 更新下載按鈕顯示 */
+function updateDownloadButtonsVisibility() {
+  const displayValue = hasAnyPhotos() ? 'inline-block' : 'none';
+
+  if (downloadCompressedBtn) {
+    downloadCompressedBtn.style.display = displayValue;
+  }
+  if (downloadHighQualityBtn) {
+    downloadHighQualityBtn.style.display = displayValue;
+  }
 }
 
 /** 重新繪製所有 canvas（依每個卡片自身的黑/白狀態） */
@@ -138,9 +163,15 @@ function updateToggleVisibility() {
   if (photos) {
     logoToggleContainer.style.display = 'flex';
     partnoToggleContainer.style.display = 'flex';
-    // 若第一次顯示，確保為開啟
-    if (!logoToggle.checked) { logoToggle.checked = true; showLogo = true; }
-    if (!partnoToggle.checked) { partnoToggle.checked = true; showPartNo = true; }
+
+    if (!logoToggle.checked) {
+      logoToggle.checked = true;
+      showLogo = true;
+    }
+    if (!partnoToggle.checked) {
+      partnoToggle.checked = true;
+      showPartNo = true;
+    }
   } else {
     logoToggleContainer.style.display = 'none';
     partnoToggleContainer.style.display = 'none';
@@ -150,35 +181,45 @@ function updateToggleVisibility() {
   if (photos && awardsReady) {
     awardToggleContainer.style.display = 'flex';
     showApplyWard = true;
-    // 規則：一顯示就預設啟用
+
+    // 一顯示就預設啟用
     if (!awardToggle.checked) {
       awardToggle.checked = true;
       applyAward = true;
     }
   } else {
     awardToggleContainer.style.display = 'none';
-    // 若不滿足條件則關閉套用狀態
     awardToggle.checked = false;
     applyAward = false;
   }
 }
 
-/** 完整重置（等同「清空」→ 包含得獎浮水印與所有 UI 狀態） */
+/** 完整重置（等同「清空」） */
 function fullReset() {
-  // 清畫面 & 暫存
+  // 清畫面與暫存
   previewContainer.innerHTML = '';
   imagesData = [];
   filesCache = {};
-  for (const k in watermarkPositions) delete watermarkPositions[k];
+
+  for (const k in watermarkPositions) {
+    delete watermarkPositions[k];
+  }
 
   // 清得獎浮水印與彈窗內容
   awardOverlays = {
     landscape: { dark: null, light: null },
-    portrait:  { dark: null,  light: null }
+    portrait: { dark: null, light: null }
   };
-  document.querySelectorAll('#awardModal .slot .slot-preview').forEach(p => p.innerHTML = '');
-  document.querySelectorAll('#awardModal .slot input[type="file"]').forEach(i => i.value = '');
-  updateApplyButtonState(); // 會變 disabled
+
+  document.querySelectorAll('#awardModal .slot .slot-preview').forEach(preview => {
+    preview.innerHTML = '';
+  });
+
+  document.querySelectorAll('#awardModal .slot input[type="file"]').forEach(input => {
+    input.value = '';
+  });
+
+  updateApplyButtonState();
 
   // 重置開關邏輯與 UI
   showApplyWard = false;
@@ -190,18 +231,53 @@ function fullReset() {
   logoToggle.checked = true;
   partnoToggle.checked = true;
 
-  // 收起所有切換容器（等上傳再顯示）
+  // 收起所有切換容器
   awardToggleContainer.style.display = 'none';
-  logoToggleContainer.style.display  = 'none';
-  partnoToggleContainer.style.display= 'none';
+  logoToggleContainer.style.display = 'none';
+  partnoToggleContainer.style.display = 'none';
 
-  // 下載按鈕收起
-  document.getElementById('downloadAll').style.display = 'none';
+  // 收起下載按鈕
+  updateDownloadButtonsVisibility();
 }
 
 /** 產生唯一 id（允許同名檔共存） */
 function genFileId(file) {
-  return `${file.name}__${Date.now()}__${Math.random().toString(36).slice(2,7)}`;
+  return `${file.name}__${Date.now()}__${Math.random().toString(36).slice(2, 7)}`;
+}
+
+/** 依模式取得 zip 檔名 */
+function getZipFileName() {
+  return awardToggle.checked ? '已上浮水印+得獎.zip' : '已上浮水印.zip';
+}
+
+/** 將 canvas 依指定 JPEG 品質輸出成 blob */
+function canvasToJpegBlob(canvas, quality) {
+  return new Promise(resolve => {
+    canvas.toBlob(resolve, 'image/jpeg', quality);
+  });
+}
+
+/** 取得 1MB 限制 blob */
+async function getCompressedBlob(canvas, fileName) {
+  let lastBlob = null;
+
+  for (const quality of QUALITY_LEVELS_1M) {
+    const blob = await canvasToJpegBlob(canvas, quality);
+    lastBlob = blob;
+
+    if (blob && blob.size <= MAX_FILE_SIZE) {
+      return { blob, name: fileName };
+    }
+  }
+
+  // 降到 0.8 還超過就接受
+  return { blob: lastBlob, name: fileName };
+}
+
+/** 取得高畫質 blob */
+async function getHighQualityBlob(canvas, fileName) {
+  const blob = await canvasToJpegBlob(canvas, 1);
+  return { blob, name: fileName };
 }
 
 // ================================
@@ -220,7 +296,9 @@ awardCancelBtn.addEventListener('click', () => {
 
 // 點背景關閉
 awardModal.addEventListener('click', (e) => {
-  if (e.target === awardModal) awardModal.style.display = 'none';
+  if (e.target === awardModal) {
+    awardModal.style.display = 'none';
+  }
 });
 
 // 彈窗內：上傳四槽的任一張
@@ -231,8 +309,8 @@ awardModalEl.addEventListener('change', (e) => {
   if (!file) return;
 
   const slot = e.target.closest('.slot');
-  const type = slot.dataset.type;     // landscape / portrait
-  const color = slot.dataset.color;   // dark / light
+  const type = slot.dataset.type;
+  const color = slot.dataset.color;
 
   const reader = new FileReader();
   reader.onload = (ev) => {
@@ -252,15 +330,8 @@ awardModalEl.addEventListener('change', (e) => {
       previewDiv.innerHTML = '';
       previewDiv.appendChild(img.cloneNode(true));
 
-      // 檢查是否可按「套用」
       updateApplyButtonState();
-
-      // ★ 關鍵：如果此時已經有實績照上傳，且四張終於齊了 → 讓主畫面出現「得獎浮水印開關」預設開啟
       updateToggleVisibility();
-      if (hasAnyPhotos() && checkAllSlotsFilled()) {
-        // 立即重繪（如果當前頁面已有預覽）
-        // redrawAllCanvases();
-      }
     };
     img.src = ev.target.result;
   };
@@ -270,16 +341,16 @@ awardModalEl.addEventListener('change', (e) => {
   e.target.value = '';
 });
 
-// 彈窗內：「套用」按鈕（關閉彈窗、顯示主畫面切換、預設開啟、重繪）
+// 彈窗內：「套用」按鈕
 awardApplyBtn.addEventListener('click', () => {
   awardModal.style.display = 'none';
 
-  // 條件允許時顯示 & 預設開啟
   if (hasAnyPhotos() && checkAllSlotsFilled()) {
     awardToggleContainer.style.display = 'flex';
     awardToggle.checked = true;
     applyAward = true;
   }
+
   redrawAllCanvases();
 });
 
@@ -289,7 +360,42 @@ awardApplyBtn.addEventListener('click', () => {
 imageInput.addEventListener('change', (e) => {
   const files = Array.from(e.target.files || []);
   files.forEach(file => handleOneFile(file));
-  e.target.value = ''; // 讓同一檔再次選取也觸發 change
+  e.target.value = '';
+});
+
+// ================================
+// 事件綁定：拖曳上傳實績照（綁在上傳按鈕本身）
+// ================================
+
+// 防止拖曳時瀏覽器直接開啟檔案
+['dragenter', 'dragover', 'dragleave', 'drop'].forEach(eventName => {
+  imageUploadBtn.addEventListener(eventName, (e) => {
+    e.preventDefault();
+    e.stopPropagation();
+  });
+});
+
+// 拖進來時高亮
+['dragenter', 'dragover'].forEach(eventName => {
+  imageUploadBtn.addEventListener(eventName, () => {
+    imageUploadBtn.classList.add('dragover');
+  });
+});
+
+// 拖離開 / 放下後取消高亮
+['dragleave', 'drop'].forEach(eventName => {
+  imageUploadBtn.addEventListener(eventName, () => {
+    imageUploadBtn.classList.remove('dragover');
+  });
+});
+
+// 放下檔案後直接加入預覽
+imageUploadBtn.addEventListener('drop', (e) => {
+  const files = Array.from(e.dataTransfer.files || []);
+
+  files
+    .filter(file => file.type.startsWith('image/')) // 只接受圖片
+    .forEach(file => handleOneFile(file));
 });
 
 // ================================
@@ -324,22 +430,27 @@ previewContainer.addEventListener('click', (e) => {
   const label = card.querySelector('.filename-label');
   const displayName = label ? label.textContent : null;
 
-  if (fileId && filesCache[fileId]) delete filesCache[fileId];
+  if (fileId && filesCache[fileId]) {
+    delete filesCache[fileId];
+  }
+
   if (displayName) {
     const idx = imagesData.findIndex(d => d.name === displayName);
-    if (idx !== -1) imagesData.splice(idx, 1);
+    if (idx !== -1) {
+      imagesData.splice(idx, 1);
+    }
   }
 
   card.remove();
 
-  // 刪到 0 張 → 相當於「清空」
+  // 刪到 0 張 → 相當於清空
   if (!hasAnyPhotos()) {
     fullReset();
     return;
   }
 
-  // 尚有圖片 → 更新切換顯示（LOGO/品號保留；得獎需視齊全狀態）
   updateToggleVisibility();
+  updateDownloadButtonsVisibility();
 });
 
 // ================================
@@ -353,7 +464,6 @@ clearAllBtn.addEventListener('click', () => {
 // 功能函式：建立/更新單張卡片並渲染
 // ================================
 function handleOneFile(file) {
-  // 準備唯一 id 與快取
   const fileId = genFileId(file);
   filesCache[fileId] = file;
 
@@ -393,25 +503,23 @@ function handleOneFile(file) {
   renderCanvas(file, 'white', container);
   whiteBtn.classList.add('active');
 
-  // 切換事件
+  // 黑白切換
   whiteBtn.addEventListener('click', () => {
-    const f = filesCache[container.dataset.fileId];
-    renderCanvas(f, 'white', container);
+    const currentFile = filesCache[container.dataset.fileId];
+    renderCanvas(currentFile, 'white', container);
     whiteBtn.classList.add('active');
     blackBtn.classList.remove('active');
   });
+
   blackBtn.addEventListener('click', () => {
-    const f = filesCache[container.dataset.fileId];
-    renderCanvas(f, 'black', container);
+    const currentFile = filesCache[container.dataset.fileId];
+    renderCanvas(currentFile, 'black', container);
     blackBtn.classList.add('active');
     whiteBtn.classList.remove('active');
   });
 
-  // 有上傳實績照 → 顯示 LOGO/品號切換；若得獎四張已齊，亦顯示得獎切換（預設開）
   updateToggleVisibility();
-
-  // 顯示下載按鈕
-  document.getElementById('downloadAll').style.display = 'inline-block';
+  updateDownloadButtonsVisibility();
 }
 
 // ================================
@@ -419,19 +527,20 @@ function handleOneFile(file) {
 // ================================
 function renderCanvas(file, style, container) {
   const reader = new FileReader();
+
   reader.onload = e => {
     const img = new Image();
     img.onload = () => {
       const watermarkImg = new Image();
       watermarkImg.onload = () => {
-        const savedPos = watermarkPositions[file.name]; // 讀取上次拖曳位置（以檔名為索引）
+        const savedPos = watermarkPositions[file.name];
         const canvas = createCanvasWithDrag(img, watermarkImg, file.name, style, savedPos);
 
         // 移除舊畫布與檔名
         container.querySelector('canvas')?.remove();
         container.querySelector('.filename-label')?.remove();
 
-        // 加入新的畫布
+        // 加入新畫布
         container.appendChild(canvas);
 
         // 檔名標籤
@@ -440,10 +549,12 @@ function renderCanvas(file, style, container) {
         label.textContent = file.name;
         container.appendChild(label);
 
-        // 更新 imagesData（下載 zip 用）
-        canvas._getBlob().then(({ blob, name }) => {
+        // 更新 imagesData（僅作暫存，不影響下載邏輯）
+        canvas._getBlobCompressed().then(({ blob, name }) => {
           const i = imagesData.findIndex(d => d.name === name);
-          if (i !== -1) imagesData.splice(i, 1);
+          if (i !== -1) {
+            imagesData.splice(i, 1);
+          }
           imagesData.push({ blob, name });
         });
       };
@@ -451,6 +562,7 @@ function renderCanvas(file, style, container) {
     };
     img.src = e.target.result;
   };
+
   reader.readAsDataURL(file);
 }
 
@@ -466,7 +578,7 @@ function createCanvasWithDrag(img, watermarkImg, fileName, style, initialPos) {
   canvas.height = targetH;
   const ctx = canvas.getContext('2d');
 
-  // 縮放背景圖充滿
+  // 背景圖縮放填滿
   const scale = Math.max(targetW / img.width, targetH / img.height);
   const drawW = img.width * scale;
   const drawH = img.height * scale;
@@ -480,9 +592,9 @@ function createCanvasWithDrag(img, watermarkImg, fileName, style, initialPos) {
   let wmY = initialPos?.y ?? (targetH - watermarkH) / 2;
 
   let dragging = false;
-  let offsetX = 0, offsetY = 0;
+  let offsetX = 0;
+  let offsetY = 0;
 
-  // 真正繪製
   function draw() {
     ctx.clearRect(0, 0, targetW, targetH);
     ctx.drawImage(img, imgX, imgY, drawW, drawH);
@@ -492,7 +604,10 @@ function createCanvasWithDrag(img, watermarkImg, fileName, style, initialPos) {
       const awardImg = isLandscape
         ? (style === 'black' ? awardOverlays.landscape.dark : awardOverlays.landscape.light)
         : (style === 'black' ? awardOverlays.portrait.dark : awardOverlays.portrait.light);
-      if (awardImg) ctx.drawImage(awardImg, 0, 0, targetW, targetH);
+
+      if (awardImg) {
+        ctx.drawImage(awardImg, 0, 0, targetW, targetH);
+      }
     }
 
     // LOGO
@@ -518,6 +633,7 @@ function createCanvasWithDrag(img, watermarkImg, fileName, style, initialPos) {
     const scaleY = canvas.height / rect.height;
     const x = (e.clientX - rect.left) * scaleX;
     const y = (e.clientY - rect.top) * scaleY;
+
     if (x >= wmX && x <= wmX + watermarkW && y >= wmY && y <= wmY + watermarkH) {
       dragging = true;
       offsetX = x - wmX;
@@ -552,68 +668,94 @@ function createCanvasWithDrag(img, watermarkImg, fileName, style, initialPos) {
     watermarkPositions[fileName] = { x: wmX, y: wmY };
   });
 
-  // 匯出成 Blob（下載用）
-  canvas._getBlob = () => new Promise(resolve => {
-    draw(); // 確保輸出的是最新畫面
-    canvas.toBlob(blob => resolve({ blob, name: fileName }), 'image/jpeg', 0.95);
-  });
+  // 下載用：1MB 壓縮版
+  canvas._getBlobCompressed = async () => {
+    draw();
+    return await getCompressedBlob(canvas, fileName);
+  };
+
+  // 下載用：高畫質版
+  canvas._getBlobHighQuality = async () => {
+    draw();
+    return await getHighQualityBlob(canvas, fileName);
+  };
+
   return canvas;
 }
 
 // ================================
 // 功能函式：下載所有圖片（保持當前套用狀態）
 // ================================
-const usedNames = new Map(); // key: 原始檔名, value: 使用次數
+const usedNames = new Map();
 
 function uniqueName(name) {
   if (!usedNames.has(name)) {
     usedNames.set(name, 1);
-    return name; // 第一次出現，直接用
+    return name;
   }
+
   const n = usedNames.get(name) + 1;
   usedNames.set(name, n);
+
   const i = name.lastIndexOf('.');
   const base = i >= 0 ? name.slice(0, i) : name;
-  const ext  = i >= 0 ? name.slice(i) : '';
-  return `${base}(${n})${ext}`; // 例如 a.jpg -> a(2).jpg, a(3).jpg ...
+  const ext = i >= 0 ? name.slice(i) : '';
+
+  return `${base}(${n})${ext}`;
 }
 
-document.getElementById('downloadAll').addEventListener('click', async () => {
+/** 共用下載流程 */
+async function downloadZip(getBlobMethodName) {
   const zip = new JSZip();
-  usedNames.clear(); // 每次下載前清空一次
+  usedNames.clear();
 
   const canvases = document.querySelectorAll('canvas');
+
   for (const canvas of canvases) {
-    if (typeof canvas._getBlob === 'function') {
-      const { blob, name } = await canvas._getBlob(); // _getBlob 會回傳原始檔名
-      zip.file(uniqueName(name), blob);               // ★ 用唯一化檔名存入
+    const getBlobFn = canvas[getBlobMethodName];
+    if (typeof getBlobFn === 'function') {
+      const { blob, name } = await getBlobFn();
+      zip.file(uniqueName(name), blob);
     }
   }
 
   const content = await zip.generateAsync({ type: 'blob' });
   const a = document.createElement('a');
   a.href = URL.createObjectURL(content);
-  a.download = awardToggle.checked ? '已上浮水印+得獎.zip' : '已上浮水印.zip';
+  a.download = getZipFileName();
   a.click();
-});
+}
+
+// 1M 檔案大小下載
+if (downloadCompressedBtn) {
+  downloadCompressedBtn.addEventListener('click', async () => {
+    await downloadZip('_getBlobCompressed');
+  });
+}
+
+// 高畫質下載
+if (downloadHighQualityBtn) {
+  downloadHighQualityBtn.addEventListener('click', async () => {
+    await downloadZip('_getBlobHighQuality');
+  });
+}
 
 // ================================
 // Go Top 按鈕功能
 // ================================
-const goTopBtn = document.getElementById("goTopBtn");
-
-window.addEventListener("scroll", () => {
-  // 超過 200px 高度才顯示
-  if (document.documentElement.scrollTop > 200 || document.body.scrollTop > 200) {
-    goTopBtn.style.display = "block";
-  } else {
-    goTopBtn.style.display = "none";
-  }
-});
-
-goTopBtn.addEventListener("click", () => {
-  window.scrollTo({
-    top: 0,
-    behavior: "smooth" // 平滑滾動
+if (goTopBtn) {
+  window.addEventListener('scroll', () => {
+    if (document.documentElement.scrollTop > 200 || document.body.scrollTop > 200) {
+      goTopBtn.style.display = 'block';
+    } else {
+      goTopBtn.style.display = 'none';
+    }
   });
-});
+
+  goTopBtn.addEventListener('click', () => {
+    window.scrollTo({
+      top: 0,
+      behavior: 'smooth'
+    });
+  });
+}

@@ -24,7 +24,7 @@
       <li>LOGO可以用滑鼠拖曳調整喜歡的位置喔！</li>
     </ol>
   <div class="controls">
-    <label class="chooseBtn">
+    <label class="chooseBtn" id="imageUploadBtn">
       <img class="icon" src="./upload.png"/>
       上傳實績照
       <input type="file" id="imageInput" multiple accept="image/*" />
@@ -37,9 +37,13 @@
       <img class="icon" src="./trash can.png"/>
       清空
     </button>
-    <button id="downloadAll">
-      <img class="icon" src="./download.png"/>
-      下載
+    <button class="download" id="downloadCompressed">
+      <img class="icon ivert_icon" src="./download.png"/>
+      1M檔案大小下載
+    </button>
+      <button class="download" id="downloadHighQuality">
+      <img class="icon ivert_icon" src="./download.png"/>
+      高畫質下載
     </button>
   </div>
 
